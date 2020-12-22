@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
+    <link rel="icon" href="https://66.media.tumblr.com/6e94e8bf9dd654e63af622f0ce9913d7/tumblr_puyux2INmL1x73yfbo6_250.png">
+    <title>Hibiki RTC Test</title>
+</head>
+<!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-app.js"></script>
+
+<!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+<script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
+
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
+
+<body>
+    <div id="app">
+        <v-container>
+            <v-row>
+                <v-alert type="error" v-model="alert" style="position: fixed; top: 0; left: 50%;z-index: 1;transform: translate(-50%,0%);">
+                    Please keyin your name and message, before you send your message.
+                </v-alert>
+                <v-col cols="12">
+                    <v-card>
+                        <!-- Create a list -->
+                        <v-list disabled>
+                            <v-list-item-group>
+                                <v-list-item>
+                                    Chat Room
+                                </v-list-item>
+                            </v-list-item-group>
+                        </v-list>
+                        <div style="height: calc(65vh - 100px);overflow-y: scroll;">
+                            <v-list>
+                                <v-list-item-group id="messages">
+                                    <v-list-item v-for="(item, index) in messageList">
+                                        <v-list-content :key="item.key" v-click="deleteMessage(item)">
+                                            <v-list-item-title v-html="item.sender"></v-list-item-title>
+                                            <v-list-item-subtitle>
+                                                <span v-html="item.message"></span>
+                                            </v-list-item-subtitle>
+                                            <v-btn v-if="item.recall == true" :key="item.key" v-click="deleteMessage(item)">Recall</v-btn>
+                                        </v-list-content>
+                                    </v-list-item>
+                                </v-list-item-group>
+                            </v-list>
+                        </div>
+                    </v-card>
+                    <v-card class="mt-3">
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12">
+                                    <v-text-field label="Name" :rules="nameRules" :counter="10" v-model="myName" required></v-text-field>
+                                    <v-text-field label="Message" :rules="rules" v-model="message" :append-icon="mdi-send" clear-icon="mdi-close-circle" type="text" v-on:keyup.13="sendMessage()"></v-text-field>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </v-container>
+    </div>
+
+
+
+
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js "></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-select/3.4.0/vue-select.js "></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js "></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        data: () => ({
+            show: false,
+            alert: false,
+            message: '',
+            marker: true,
+            iconIndex: 0,
+            messageList: [],
+            myName: '',
+            nameRules: [
+                v => !!v || 'Name is required',
+                v => v.length <= 10 || 'Name must be less than 10 characters',
+            ]
+        }),
+        mounted: function() {
+            // Your web app's Firebase configuration
+            var firebaseConfig = {
+                apiKey: "AIzaSyC0VuR-Bt32-o9yaZWlR7AXWhd7twOqKBs",
+                authDomain: "countingdatabase.firebaseapp.com",
+                databaseURL: "https://countingdatabase.firebaseio.com",
+                projectId: "countingdatabase",
+                storageBucket: "countingdatabase.appspot.com",
+                messagingSenderId: "155011884318",
+                appId: "1:155011884318:web:519e48a2c6dd4187b2550f"
+            };
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.database();
+            db.ref("messages").on("child_added", function(snapshot) {
+                const data = {
+                    'key': snapshot.key,
+                    'sender': snapshot.val().sender,
+                    'message': snapshot.val().message,
+                }
+                if (data.sender == this.myName) {
+                    data.recall = true;
+                    app.messageList.push(data);
+                } else {
+                    data.recall = false;
+                    app.messageList.push(data);
+                }
+            });
+        },
+        methods: {
+            toggleMarker() {
+                this.marker = !this.marker
+            },
+            sendMessage() {
+                // this.resetIcon()
+                if (this.myName == '' || this.message == '') {
+                    this.alert = true;
+                } else {
+                    firebase.database().ref("messages").push().set({
+                        "sender": this.myName,
+                        "message": this.message
+                    })
+                    this.clearMessage()
+                    this.alert = false
+                }
+            },
+            clearMessage() {
+                this.message = ''
+            },
+            changeIcon() {
+                this.iconIndex === this.icons.length - 1 ?
+                    this.iconIndex = 0 :
+                    this.iconIndex++
+            },
+            deleteMessage(self) {
+                // get message ID
+                // this.style.display = "none";
+                messageId = self.key;
+                // delete message
+                firebase.database().ref("messages").child(messageId).remove();
+            }
+        }
+    })
+</script>
+<script>
+    // attch listener for delete message
+    // firebase.database().ref("messages").on("child_removed", function(snapshot) {
+    //     // remove message node
+    //     document.getElementById("message-" + snapshot.key).innerHTML = "This message has been removed";
+    // });
+</script>
+
+</html>
