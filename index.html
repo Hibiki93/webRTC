@@ -48,7 +48,7 @@
                             <v-list>
                                 <v-list-item-group id="messages">
                                     <v-list-item v-for="(item, index) in messageList">
-                                        <v-list-content :key="item.key" v-click="deleteMessage(item)">
+                                        <v-list-content :key="item.key" @click="deleteMessage(item)">
                                             <v-list-item-title v-html="item.sender"></v-list-item-title>
                                             <v-list-item-subtitle>
                                                 <span v-html="item.message"></span>
