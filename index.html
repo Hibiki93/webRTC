@@ -122,10 +122,10 @@
                 }
                 if (data.sender == this.myName) {
                     data.recall = true;
-                    app.messageList.push(data);
+                    app.messageList.unshift(data);
                 } else {
                     data.recall = false;
-                    app.messageList.push(data);
+                    app.messageList.unshift(data);
                 }
             });
         },
