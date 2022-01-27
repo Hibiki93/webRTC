@@ -49,7 +49,10 @@
                                 <v-list-item-group id="messages">
                                     <v-list-item v-for="(item, index) in messageList" :key="index">
                                         <v-list-item-content>
-                                            <v-list-item-title v-html="item.sender"></v-list-item-title>
+                                            <v-list-item-title>
+                                                <v-icon dense>mdi-account</v-icon>
+                                                <span v-html="item.sender"></span>
+                                            </v-list-item-title>
                                             <v-list-item-subtitle>
                                                 <span v-html="item.message"></span>
                                             </v-list-item-subtitle>
@@ -65,7 +68,7 @@
                             <v-row>
                                 <v-col cols="12">
                                     <span v-if="dialog == false">
-                                        <v-icon x-large>mdi-user</v-icon>
+                                        <v-icon x-large>mdi-account</v-icon>
                                         {{myName}}
                                     </span>
                                     <v-text-field label="Message" :rules="rules" v-model="message" append-icon="mdi-send" clear-icon="mdi-close-circle" type="text" v-on:keyup.13="sendMessage()"></v-text-field>
@@ -80,7 +83,7 @@
                             Please Key In Your Name
                         </v-card-title>
                         <v-card-text>
-                            <v-text-field label="Name" :rules="nameRules" :counter="10" v-model="myName" required v-on:keyup.13="dialog = false,getData()"></v-text-field>
+                            <v-text-field label="Name" :rules="nameRules" v-model="myName" required v-on:keyup.13="dialog = false,getData()"></v-text-field>
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer></v-spacer>
