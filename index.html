@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
     <link rel="icon" href="https://66.media.tumblr.com/6e94e8bf9dd654e63af622f0ce9913d7/tumblr_puyux2INmL1x73yfbo6_250.png">
@@ -47,14 +47,14 @@
                         <div style="height: calc(65vh - 100px);overflow-y: scroll;">
                             <v-list>
                                 <v-list-item-group id="messages">
-                                    <v-list-item v-for="(item, index) in messageList">
-                                        <v-list-content :key="item.key" @click="deleteMessage(item)">
+                                    <v-list-item v-for="(item, index) in messageList" :key="index">
+                                        <v-list-item-content>
                                             <v-list-item-title v-html="item.sender"></v-list-item-title>
                                             <v-list-item-subtitle>
                                                 <span v-html="item.message"></span>
                                             </v-list-item-subtitle>
                                             <v-btn v-if="item.recall == true" :key="item.key" v-click="deleteMessage(item)">Recall</v-btn>
-                                        </v-list-content>
+                                        </v-list-item-content>
                                     </v-list-item>
                                 </v-list-item-group>
                             </v-list>
@@ -64,13 +64,37 @@
                         <v-container>
                             <v-row>
                                 <v-col cols="12">
-                                    <v-text-field label="Name" :rules="nameRules" :counter="10" v-model="myName" required></v-text-field>
-                                    <v-text-field label="Message" :rules="rules" v-model="message" :append-icon="mdi-send" clear-icon="mdi-close-circle" type="text" v-on:keyup.13="sendMessage()"></v-text-field>
+                                    <span v-if="dialog == false">
+                                        <v-icon x-large>mdi-user</v-icon>
+                                        {{myName}}
+                                    </span>
+                                    <v-text-field label="Message" :rules="rules" v-model="message" append-icon="mdi-send" clear-icon="mdi-close-circle" type="text" v-on:keyup.13="sendMessage()"></v-text-field>
                                 </v-col>
                             </v-row>
                         </v-container>
                     </v-card>
                 </v-col>
+                <v-col v-if="dialog" style="position: fixed;top: 50%;left: 50%;transform: translate(-50%,-50%);max-width: 500px;z-index:1;">
+                    <v-card>
+                        <v-card-title class="text-h5">
+                            Please Key In Your Name
+                        </v-card-title>
+                        <v-card-text>
+                            <v-text-field label="Name" :rules="nameRules" :counter="10" v-model="myName" required v-on:keyup.13="dialog = false,getData()"></v-text-field>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="green darken-1" text @click="dialog = false,getData()">
+                                Submit
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                    <v-dialog v-model="dialog" width="500" transition="slide-y-transition" origin="top center">
+                        test
+                    </v-dialog>
+                </v-col>
+                <div v-if="dialog" style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0,0,0,0.3);">
+                </div>
             </v-row>
         </v-container>
     </div>
@@ -94,42 +118,49 @@
             marker: true,
             iconIndex: 0,
             messageList: [],
+            dialog: true,
             myName: '',
             nameRules: [
                 v => !!v || 'Name is required',
-                v => v.length <= 10 || 'Name must be less than 10 characters',
-            ]
+                // v => v.length <= 10 || 'Name must be less than 10 characters',
+            ],
+            rules: [
+                v => !!v || 'Message is required',
+                v => v.length >= 3 || 'Message must be more that 3 characters',
+            ],
+            firebaseConfig: {
+                apiKey: "AIzaSyClQTw_hVUcSr_Jxbka3_D2Y8OVSzfeTqs",
+                authDomain: "web-rtc-78941.firebaseapp.com",
+                databaseURL: "https://web-rtc-78941-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "web-rtc-78941",
+                storageBucket: "web-rtc-78941.appspot.com",
+                messagingSenderId: "578051369294",
+                appId: "1:578051369294:web:9794356e9001d90f1ed61f",
+                measurementId: "G-SV3HQ4R751"
+            },
+
         }),
-        mounted: function() {
-            // Your web app's Firebase configuration
-            var firebaseConfig = {
-                apiKey: "AIzaSyC0VuR-Bt32-o9yaZWlR7AXWhd7twOqKBs",
-                authDomain: "countingdatabase.firebaseapp.com",
-                databaseURL: "https://countingdatabase.firebaseio.com",
-                projectId: "countingdatabase",
-                storageBucket: "countingdatabase.appspot.com",
-                messagingSenderId: "155011884318",
-                appId: "1:155011884318:web:519e48a2c6dd4187b2550f"
-            };
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
-            var db = firebase.database();
-            db.ref("messages").on("child_added", function(snapshot) {
-                const data = {
-                    'key': snapshot.key,
-                    'sender': snapshot.val().sender,
-                    'message': snapshot.val().message,
-                }
-                if (data.sender == this.myName) {
-                    data.recall = true;
-                    app.messageList.unshift(data);
-                } else {
-                    data.recall = false;
-                    app.messageList.unshift(data);
-                }
-            });
+        mounted() {
+            firebase.initializeApp(this.firebaseConfig);
         },
         methods: {
+            getData() {
+                var db = firebase.database();
+                db.ref("messages").on("child_added", function(snapshot) {
+                    const data = {
+                        'key': snapshot.key,
+                        'sender': snapshot.val().sender,
+                        'message': snapshot.val().message,
+                    }
+                    if (data.sender == this.myName) {
+                        data.recall = true;
+                        app.messageList.unshift(data);
+                    } else {
+                        data.recall = false;
+                        app.messageList.unshift(data);
+                    }
+                });
+            },
             toggleMarker() {
                 this.marker = !this.marker
             },
